@@ -217,5 +217,4 @@ which Velocity has no way to verify against ahead of time. There's plenty of
 room for more (a proper settings screen, steering-wheel media key handling, a
 queue, offline caching). Contributions welcome.
 
-[![GitHub release](https://shields.io)](https://github.com)
-
+[![Releases](https://img.shields.io/github/v/release/advaithavinash/Velocity-For-Android-Auto?label=Releases&style=for-the-badge)](https://github.com/advaithavinash/Velocity-For-Android-Auto/releases)
