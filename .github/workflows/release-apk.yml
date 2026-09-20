@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -98,3 +101,20 @@ jobs:
         with:
           name: velocity-apk
           path: velocity.apk
+
+      - name: Publish APK to a scratch branch
+        # Actions artifacts live on Azure blob storage, which isn't reachable
+        # from every environment that wants this file - a plain git branch
+        # is. This branch is force-pushed with a single commit each run, so
+        # it never accumulates history; it's a drop point, not an archive.
+        run: |
+          git config user.name "velocity-ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout --orphan apk-drop
+          git rm -rf --cached . > /dev/null
+          cp velocity.apk /tmp/velocity.apk
+          rm -rf ./*
+          mv /tmp/velocity.apk velocity.apk
+          git add velocity.apk
+          git commit -m "Velocity APK - build ${{ github.run_number }} (${{ github.sha }})"
+          git push --force origin HEAD:apk-drop
