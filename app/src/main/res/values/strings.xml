@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Velocity</string>
+    <string name="home_title">Velocity</string>
+    <string name="home_subtitle">Pick something to watch</string>
+
+    <string name="tile_youtube">YouTube</string>
+    <string name="tile_netflix">Netflix</string>
+    <string name="tile_stremio">Stremio</string>
+    <string name="tile_add_app">Add app</string>
+
+    <string name="add_app_title">Add a web app</string>
+    <string name="add_app_name_hint">Name (e.g. Disney+)</string>
+    <string name="add_app_url_hint">https://…</string>
+    <string name="add_app_save">Add</string>
+    <string name="add_app_cancel">Cancel</string>
+    <string name="remove_app_title">Remove %1$s?</string>
+    <string name="remove_app_confirm">Remove</string>
+    <string name="remove_app_cancel">Cancel</string>
+
+    <string name="youtube_search_hint">Search YouTube</string>
+    <string name="result_subtitle_format">%1$s · %2$s</string>
+    <string name="youtube_loading">Loading…</string>
+    <string name="youtube_error">Couldn\'t load that. Check your connection and try again.</string>
+    <string name="youtube_empty">No results</string>
+    <string name="youtube_retry">Retry</string>
+
+    <string name="player_error">Playback failed</string>
+
+    <string name="cd_back">Back</string>
+    <string name="cd_search">Search</string>
+    <string name="cd_app_icon">%1$s icon</string>
+</resources>

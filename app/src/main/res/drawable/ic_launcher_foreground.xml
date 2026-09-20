@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- A simple "V" chevron mark - the whole icon philosophy in one shape:
+         no gradients, no shadows, nothing flashy. -->
+    <path
+        android:fillColor="#FF5A1F"
+        android:pathData="M30,30 L54,76 L78,30 L64,30 L54,50 L44,30 Z" />
+</vector>

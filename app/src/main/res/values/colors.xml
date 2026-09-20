@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Deliberately near-black, not pure grey Material surfaces - less glare
+         at night, and it reads as "car head-unit", not "2012 phone app". -->
+    <color name="background">#0D0F12</color>
+    <color name="surface">#181B20</color>
+    <color name="surface_focused">#242830</color>
+    <color name="on_background">#F4F6F8</color>
+    <color name="on_background_muted">#9BA3AE</color>
+
+    <color name="accent">#FF5A1F</color>
+    <color name="accent_dim">#B3401A</color>
+
+    <color name="youtube_tint">#FF3B30</color>
+    <color name="netflix_tint">#E5322D</color>
+    <color name="stremio_tint">#7B5BF5</color>
+    <color name="web_tint">#2FA0FF</color>
+
+    <color name="divider">#2A2E35</color>
+    <color name="transparent">#00000000</color>
+    <color name="scrim">#B0000000</color>
+</resources>

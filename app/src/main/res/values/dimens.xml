@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="tile_min_width">220dp</dimen>
+    <dimen name="tile_height">160dp</dimen>
+    <dimen name="tile_icon_size">48dp</dimen>
+    <dimen name="tile_corner_radius">16dp</dimen>
+    <dimen name="touch_target_min">56dp</dimen>
+    <dimen name="screen_margin">24dp</dimen>
+</resources>
