@@ -216,3 +216,5 @@ still ultimately depends on your specific AAEnabler/KingsInstaller build,
 which Velocity has no way to verify against ahead of time. There's plenty of
 room for more (a proper settings screen, steering-wheel media key handling, a
 queue, offline caching). Contributions welcome.
+
+https://img.shields.io/github/v/release/:user/:repo
