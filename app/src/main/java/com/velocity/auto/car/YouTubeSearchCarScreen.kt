@@ -9,6 +9,7 @@ import androidx.car.app.model.SearchTemplate
 import androidx.car.app.model.Template
 import androidx.lifecycle.coroutineScope
 import com.velocity.auto.R
+import com.velocity.auto.youtube.HistoryStore
 import com.velocity.auto.youtube.extractor.YouTubeSearchService
 import com.velocity.auto.youtube.model.YtVideoItem
 import kotlinx.coroutines.launch
@@ -16,7 +17,9 @@ import kotlinx.coroutines.launch
 /** Search-and-play, car-template style - the same search-only philosophy as the phone screen. */
 class YouTubeSearchCarScreen(carContext: CarContext) : Screen(carContext) {
 
-    private var results: List<YtVideoItem> = emptyList()
+    // Continue watching, shown until the driver actually searches for
+    // something - beats a blank search box every time the car reconnects.
+    private var results: List<YtVideoItem> = HistoryStore(carContext).recent()
     private var loading = false
     private var lastQuery = ""
 
@@ -52,7 +55,7 @@ class YouTubeSearchCarScreen(carContext: CarContext) : Screen(carContext) {
         val builder = SearchTemplate.Builder(searchListener)
             .setHeaderAction(Action.BACK)
             .setSearchHint(carContext.getString(R.string.youtube_search_hint))
-            .setShowKeyboardByDefault(lastQuery.isEmpty())
+            .setShowKeyboardByDefault(lastQuery.isEmpty() && results.isEmpty())
             .setLoading(loading)
 
         // Templates that support a loading spinner generally reject also
@@ -69,7 +72,7 @@ class YouTubeSearchCarScreen(carContext: CarContext) : Screen(carContext) {
                         .setTitle(video.title)
                         .addText("${video.uploader} · ${video.formattedDuration()}")
                         .setOnClickListener {
-                            screenManager.push(YouTubePlayerCarScreen(carContext, video.url))
+                            screenManager.push(YouTubePlayerCarScreen(carContext, video))
                         }
                         .build()
                 )

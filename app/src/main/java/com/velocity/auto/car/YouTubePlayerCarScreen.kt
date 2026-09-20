@@ -17,12 +17,17 @@ import androidx.lifecycle.coroutineScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.session.MediaSession
+import com.velocity.auto.settings.PlaybackPrefs
+import com.velocity.auto.youtube.HistoryStore
 import com.velocity.auto.youtube.extractor.PlayableStream
+import com.velocity.auto.youtube.extractor.VelocityPlaybackCache
 import com.velocity.auto.youtube.extractor.YouTubeStreamResolver
+import com.velocity.auto.youtube.model.YtVideoItem
 import kotlinx.coroutines.launch
 
 /**
@@ -32,12 +37,14 @@ import kotlinx.coroutines.launch
  * frames onto any Surface it's given. This is the same technique apps like
  * CarStream use to get real video playback onto the car screen at all.
  */
+@UnstableApi
 class YouTubePlayerCarScreen(
     carContext: CarContext,
-    private val videoUrl: String
+    private val video: YtVideoItem
 ) : Screen(carContext) {
 
     private var player: ExoPlayer? = null
+    private var mediaSession: MediaSession? = null
     private var loading = true
     private var errored = false
 
@@ -58,9 +65,12 @@ class YouTubePlayerCarScreen(
 
     init {
         carContext.getCarService(AppManager::class.java).setSurfaceCallback(surfaceCallback)
+        HistoryStore(carContext).record(video)
         lifecycle.addObserver(
             object : DefaultLifecycleObserver {
                 override fun onDestroy(owner: LifecycleOwner) {
+                    mediaSession?.release()
+                    mediaSession = null
                     player?.release()
                     player = null
                 }
@@ -71,7 +81,7 @@ class YouTubePlayerCarScreen(
     private fun startPlayback(surface: Surface) {
         lifecycle.coroutineScope.launch {
             try {
-                val stream = YouTubeStreamResolver.resolve(videoUrl)
+                val stream = YouTubeStreamResolver.resolve(video.url, PlaybackPrefs.isDataSaverEnabled(carContext))
                 attachAndPlay(stream, surface)
             } catch (e: Exception) {
                 errored = true
@@ -81,12 +91,11 @@ class YouTubePlayerCarScreen(
     }
 
     private fun attachAndPlay(stream: PlayableStream, surface: Surface) {
-        val dataSourceFactory = DefaultHttpDataSource.Factory()
-            .setUserAgent(USER_AGENT)
-            .setAllowCrossProtocolRedirects(true)
+        val dataSourceFactory = VelocityPlaybackCache.dataSourceFactory(carContext)
 
         val exoPlayer = ExoPlayer.Builder(carContext).build()
         player = exoPlayer
+        mediaSession = MediaSession.Builder(carContext, exoPlayer).build()
         exoPlayer.setVideoSurface(surface)
 
         when (stream) {
@@ -154,9 +163,5 @@ class YouTubePlayerCarScreen(
         // A plain val (not const) since android.graphics.Color.parseColor
         // isn't a compile-time constant expression.
         private val BACKGROUND_COLOR = android.graphics.Color.parseColor("#0D0F12")
-
-        private const val USER_AGENT =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-                "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
     }
 }

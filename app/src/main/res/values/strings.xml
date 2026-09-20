@@ -27,7 +27,13 @@
 
     <string name="player_error">Playback failed</string>
 
+    <string name="settings_title">Settings</string>
+    <string name="settings_data_saver">Data saver</string>
+    <string name="settings_data_saver_description">Cap YouTube quality around 480p to start faster and buffer less - useful on cellular in the car.</string>
+    <string name="settings_done">Done</string>
+
     <string name="cd_back">Back</string>
     <string name="cd_search">Search</string>
+    <string name="cd_settings">Settings</string>
     <string name="cd_app_icon">%1$s icon</string>
 </resources>

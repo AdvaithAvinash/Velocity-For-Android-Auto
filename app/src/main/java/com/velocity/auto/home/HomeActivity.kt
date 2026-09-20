@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.velocity.auto.R
 import com.velocity.auto.databinding.ActivityHomeBinding
+import com.velocity.auto.settings.SettingsDialog
 import com.velocity.auto.util.SystemUiHelper
 import com.velocity.auto.web.WebAppActivity
 import com.velocity.auto.youtube.YouTubeHomeActivity
@@ -32,6 +33,7 @@ class HomeActivity : AppCompatActivity() {
         binding.tileList.layoutManager = GridLayoutManager(this, SPAN_COUNT)
         binding.tileList.adapter = adapter
         binding.tileList.itemAnimator = null
+        binding.settingsButton.setOnClickListener { SettingsDialog.show(this) }
 
         refresh()
     }

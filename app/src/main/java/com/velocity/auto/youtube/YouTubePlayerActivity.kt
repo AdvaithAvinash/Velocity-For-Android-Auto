@@ -9,21 +9,27 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.session.MediaSession
 import com.velocity.auto.databinding.ActivityYoutubePlayerBinding
+import com.velocity.auto.settings.PlaybackPrefs
 import com.velocity.auto.util.SystemUiHelper
 import com.velocity.auto.youtube.extractor.PlayableStream
+import com.velocity.auto.youtube.extractor.VelocityPlaybackCache
 import com.velocity.auto.youtube.extractor.YouTubeStreamResolver
+import com.velocity.auto.youtube.model.YtVideoItem
 import kotlinx.coroutines.launch
 
 /** Plays a single resolved YouTube stream through ExoPlayer - no comments, no autoplay queue, no suggestions. */
+@UnstableApi
 class YouTubePlayerActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityYoutubePlayerBinding
     private var player: ExoPlayer? = null
+    private var mediaSession: MediaSession? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,17 +38,19 @@ class YouTubePlayerActivity : AppCompatActivity() {
         SystemUiHelper.goEdgeToEdge(this)
         SystemUiHelper.keepScreenOn(this, true)
 
-        binding.playerTitle.text = intent.getStringExtra(EXTRA_TITLE).orEmpty()
+        val video = videoFromIntent(intent)
+        binding.playerTitle.text = video.title
         binding.backButton.setOnClickListener { finish() }
 
-        loadAndPlay(intent.getStringExtra(EXTRA_VIDEO_URL).orEmpty())
+        HistoryStore(this).record(video)
+        loadAndPlay(video.url)
     }
 
     private fun loadAndPlay(videoUrl: String) {
         binding.loadingIndicator.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
-                val stream = YouTubeStreamResolver.resolve(videoUrl)
+                val stream = YouTubeStreamResolver.resolve(videoUrl, PlaybackPrefs.isDataSaverEnabled(this@YouTubePlayerActivity))
                 startPlayback(stream)
             } catch (e: Exception) {
                 showError()
@@ -51,12 +59,11 @@ class YouTubePlayerActivity : AppCompatActivity() {
     }
 
     private fun startPlayback(stream: PlayableStream) {
-        val dataSourceFactory = DefaultHttpDataSource.Factory()
-            .setUserAgent(USER_AGENT)
-            .setAllowCrossProtocolRedirects(true)
+        val dataSourceFactory = VelocityPlaybackCache.dataSourceFactory(this)
 
         val exoPlayer = ExoPlayer.Builder(this).build()
         player = exoPlayer
+        mediaSession = MediaSession.Builder(this, exoPlayer).build()
         binding.playerView.player = exoPlayer
 
         when (stream) {
@@ -99,6 +106,8 @@ class YouTubePlayerActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        mediaSession?.release()
+        mediaSession = null
         player?.release()
         player = null
         super.onDestroy()
@@ -107,13 +116,24 @@ class YouTubePlayerActivity : AppCompatActivity() {
     companion object {
         private const val EXTRA_VIDEO_URL = "extra_video_url"
         private const val EXTRA_TITLE = "extra_title"
-        private const val USER_AGENT =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-                "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+        private const val EXTRA_UPLOADER = "extra_uploader"
+        private const val EXTRA_DURATION_SECONDS = "extra_duration_seconds"
+        private const val EXTRA_THUMBNAIL_URL = "extra_thumbnail_url"
 
-        fun intentFor(context: Context, videoUrl: String, title: String): Intent =
+        private fun videoFromIntent(intent: Intent) = YtVideoItem(
+            title = intent.getStringExtra(EXTRA_TITLE).orEmpty(),
+            url = intent.getStringExtra(EXTRA_VIDEO_URL).orEmpty(),
+            uploader = intent.getStringExtra(EXTRA_UPLOADER).orEmpty(),
+            durationSeconds = intent.getLongExtra(EXTRA_DURATION_SECONDS, 0L),
+            thumbnailUrl = intent.getStringExtra(EXTRA_THUMBNAIL_URL)
+        )
+
+        fun intentFor(context: Context, video: YtVideoItem): Intent =
             Intent(context, YouTubePlayerActivity::class.java)
-                .putExtra(EXTRA_VIDEO_URL, videoUrl)
-                .putExtra(EXTRA_TITLE, title)
+                .putExtra(EXTRA_VIDEO_URL, video.url)
+                .putExtra(EXTRA_TITLE, video.title)
+                .putExtra(EXTRA_UPLOADER, video.uploader)
+                .putExtra(EXTRA_DURATION_SECONDS, video.durationSeconds)
+                .putExtra(EXTRA_THUMBNAIL_URL, video.thumbnailUrl)
     }
 }

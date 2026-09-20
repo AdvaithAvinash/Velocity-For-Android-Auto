@@ -62,6 +62,15 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:1.4.0")
     implementation("androidx.media3:media3-ui:1.4.0")
 
+    // MediaSession wiring - hardware media buttons, steering-wheel/Bluetooth
+    // play-pause, and lock-screen controls, all driven by the same player.
+    implementation("androidx.media3:media3-session:1.4.0")
+
+    // Shared OkHttp-backed data source + on-disk playback cache, so
+    // switching videos and replays reuse pooled connections instead of
+    // paying a fresh TLS handshake/full re-download every time.
+    implementation("androidx.media3:media3-datasource-okhttp:1.4.0")
+
     // The actual in-car surface (home grid, search, video) rendered on the
     // Android Auto head unit screen once an unlocker like AAEnabler lets
     // Velocity through.

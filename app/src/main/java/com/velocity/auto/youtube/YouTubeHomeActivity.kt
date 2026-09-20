@@ -19,7 +19,7 @@ class YouTubeHomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityYoutubeHomeBinding
     private val adapter = YouTubeResultsAdapter { video ->
-        startActivity(YouTubePlayerActivity.intentFor(this, video.url, video.title))
+        startActivity(YouTubePlayerActivity.intentFor(this, video))
     }
     private var lastQuery: String? = null
 
@@ -45,6 +45,11 @@ class YouTubeHomeActivity : AppCompatActivity() {
                 false
             }
         }
+
+        // Continue watching, if there's anything to continue - beats a blank
+        // screen every time you reopen YouTube in the car.
+        val history = HistoryStore(this).recent()
+        if (history.isNotEmpty()) showResults(history)
     }
 
     private fun runSearch() {
