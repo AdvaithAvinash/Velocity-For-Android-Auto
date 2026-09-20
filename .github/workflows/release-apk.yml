@@ -115,6 +115,6 @@ jobs:
           cp velocity.apk /tmp/velocity.apk
           rm -rf ./*
           mv /tmp/velocity.apk velocity.apk
-          git add velocity.apk
+          git add -f velocity.apk
           git commit -m "Velocity APK - build ${{ github.run_number }} (${{ github.sha }})"
           git push --force origin HEAD:apk-drop
