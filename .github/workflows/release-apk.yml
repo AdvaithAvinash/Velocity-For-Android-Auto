@@ -64,10 +64,15 @@ jobs:
         run: gradle assembleRelease --no-daemon
 
       - name: Download uber-apk-signer
+        # The release asset filename includes a version number, so a fixed
+        # ".../releases/latest/download/uber-apk-signer.jar" URL 404s - ask
+        # the GitHub API for the actual current asset URL instead.
         run: |
           mkdir -p tools
-          curl -fL -o tools/uber-apk-signer.jar \
-            https://github.com/patrickfav/uber-apk-signer/releases/latest/download/uber-apk-signer.jar
+          JAR_URL=$(curl -fsSL https://api.github.com/repos/patrickfav/uber-apk-signer/releases/latest \
+            | grep -o 'https://[^"]*\.jar' | head -n1)
+          echo "Resolved uber-apk-signer jar URL: $JAR_URL"
+          curl -fL -o tools/uber-apk-signer.jar "$JAR_URL"
 
       - name: Sign release APK
         env:
