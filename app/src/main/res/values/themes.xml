@@ -22,18 +22,21 @@
         <item name="android:windowContentTransitions">false</item>
     </style>
 
-    <style name="Velocity.Text.Title">
+    <!-- parent="" disables aapt2's dot-name implicit-parent lookup (it would
+         otherwise look for a style literally named "Velocity.Text", which
+         doesn't exist, and fail the resource link). -->
+    <style name="Velocity.Text.Title" parent="">
         <item name="android:textColor">@color/on_background</item>
         <item name="android:textSize">28sp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
-    <style name="Velocity.Text.Subtitle">
+    <style name="Velocity.Text.Subtitle" parent="">
         <item name="android:textColor">@color/on_background_muted</item>
         <item name="android:textSize">16sp</item>
     </style>
 
-    <style name="Velocity.Text.TileLabel">
+    <style name="Velocity.Text.TileLabel" parent="">
         <item name="android:textColor">@color/on_background</item>
         <item name="android:textSize">18sp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
