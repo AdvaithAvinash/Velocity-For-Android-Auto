@@ -41,22 +41,52 @@ embedding the full YouTube website or app.
 
 Android Auto's official app categories don't allow general video playback
 while driving, so there's no "supported" way to do this through Google's own
-car-app APIs. Velocity is instead a normal Android app meant to be installed
-directly onto the (usually Android-based) head unit itself - the same model
-used by CarStream and similar community apps - and it leans on the same
-lightweight extraction approach NewPipe uses for YouTube instead of shipping
-a full browser-based YouTube client, which is what actually keeps it fast on
-head-unit hardware that is often years behind a modern phone.
+car-app APIs - which is exactly the gap AAEnabler and KingsInstaller exist to
+work around. Velocity ships **two** faces that both need to work for the
+whole chain to function:
+
+1. **A normal phone app** (`home/`, `web/`, `youtube/`) - what you get
+   tapping Velocity's icon on your phone. This part needs nothing special.
+2. **A car-screen app** (`car/`), built on Google's own
+   [androidx.car.app](https://developer.android.com/training/cars/navigation)
+   framework, that's what actually renders on the head unit's display when
+   Android Auto is projecting. This is the part AAEnabler and KingsInstaller
+   are really unlocking - normally only Google-approved apps in a handful of
+   categories (navigation, parking, EV charging, etc.) are allowed to bind a
+   car-screen service at all, and video playback specifically isn't one of
+   them. AAEnabler patches the phone's Android Auto app to stop checking that
+   allowlist; KingsInstaller is what then lets you toggle Velocity into the
+   car's app grid.
+
+For YouTube specifically, the car screen uses the one loophole this
+framework has: a `NavigationTemplate` is the only template the car host
+hands your app a raw video `Surface` for (it's meant for drawing a map).
+Velocity hands that `Surface` straight to ExoPlayer instead - the same trick
+apps like **CarStream** use to get real video onto the car display at all.
+Netflix and Stremio don't offer a video-surface-only path like that (they're
+full interactive web apps), so the car screen instead mirrors an off-screen
+WebView onto that same surface a few times a second and forwards taps/scrolls
+back into it - the "screen mirroring" approach apps like **Screen2Auto** use.
+It leans on the same lightweight extraction approach NewPipe uses for YouTube
+instead of shipping a full browser-based YouTube client, which is what keeps
+it fast on head units that are often years behind a modern phone.
 
 ## Project layout
 
 ```
 app/src/main/java/com/velocity/auto/
-  VelocityApp.kt              application entrypoint, initializes NewPipeExtractor
-  home/                        app picker: model, repository, adapter, activity
-  web/WebAppActivity.kt        full-screen WebView shell for Netflix/Stremio/custom apps
-  youtube/                     search UI, results adapter, player activity
-  youtube/extractor/           NewPipeExtractor downloader, search, and stream resolver
+  VelocityApp.kt               application entrypoint, initializes NewPipeExtractor
+  home/                        phone-side app picker: model, repository, adapter, activity
+  web/WebAppActivity.kt        phone-side full-screen WebView shell for Netflix/Stremio/custom apps
+  youtube/                     phone-side search UI, results adapter, player activity
+  youtube/extractor/           NewPipeExtractor downloader, search, and stream resolver (shared)
+  car/                         the actual in-car screens (see "Why it's built this way")
+    VelocityCarAppService.kt     bind point the Android Auto host looks for
+    VelocitySession.kt           hands out the first screen
+    HomeCarScreen.kt              car-side app grid (GridTemplate)
+    YouTubeSearchCarScreen.kt     car-side YouTube search (SearchTemplate)
+    YouTubePlayerCarScreen.kt     car-side YouTube playback (NavigationTemplate + raw Surface)
+    WebMirrorCarScreen.kt         car-side Netflix/Stremio (NavigationTemplate + WebView mirroring)
   util/SystemUiHelper.kt       edge-to-edge + keep-screen-on helpers
 ```
 
@@ -73,46 +103,77 @@ line setup.
    config).
 3. The APK lands in `app/build/outputs/apk/debug/` or `.../release/`.
 
-## Installing on a head unit
+## Installing (phone projecting to Android Auto)
 
-Most aftermarket and OEM "Android Auto" head units actually run a locked-down
-Android build under the hood, but block installing your own APKs the normal
-way - no Play Store account, no visible "unknown sources" toggle, sometimes
-no accessible file manager either. Two community tools exist specifically to
-get around that:
+The most common setup - a phone running the real Android Auto app, projecting
+to a head unit's screen (aftermarket or OEM) - normally only lets
+Google-approved apps show up on the car display at all. Two community tools
+exist specifically to get around that, and Velocity is built to work with
+both:
 
-- **AAEnabler** unlocks the head unit itself: it exposes (or patches in) the
-  developer/unknown-sources settings the manufacturer hid, so the unit will
-  run apps that didn't come from its own preloaded app store.
-- **KingsInstaller** is a sideloading and app-management tool built for these
-  units. Once AAEnabler has unlocked installs, KingsInstaller is what you
-  actually use to install Velocity's APK, grant it the permissions it needs,
-  and (usually) set it to survive the unit's aggressive background-app
-  killing.
+- **AAEnabler** patches your phone's Android Auto app to stop checking
+  whether an app is on Google's approved list before letting it bind a
+  car-screen service. Without this, Android Auto won't even consider showing
+  Velocity, regardless of anything in Velocity itself.
+- **KingsInstaller** is what you use to actually install Velocity's APK and,
+  crucially, to open its **"customize launcher"** screen and toggle Velocity
+  on so it appears in the car's app grid. It also handles the certificate/
+  permission quirks these sideloaded, self-signed APKs tend to hit.
 
-Rough steps:
+Steps:
 
-1. **Get AAEnabler and KingsInstaller** for your specific head unit/chipset
-   from their usual community distribution channels (XDA, head-unit-specific
-   forums, or Telegram groups dedicated to your unit's chipset). Builds are
-   often chipset-specific, so make sure you grab the one matching your unit.
-2. **Run AAEnabler first** and follow its unlock flow for your unit. This is
-   what makes the next step possible at all.
-3. **Get Velocity's APK onto the unit** - a USB drive works on most units, or
-   KingsInstaller's own APK browser/fetcher if it has one.
-4. **Install Velocity through KingsInstaller**, not through whatever stock
-   file manager the unit has - KingsInstaller handles the certificate and
-   permission quirks these units tend to have with self-signed APKs.
-5. In KingsInstaller (or the unit's own app settings once Velocity is
-   installed), grant Velocity network access, disable battery/background
-   restrictions for it, and enable autostart if you want it to survive a
-   reboot.
-6. Launch **Velocity** from the unit's app drawer.
+1. **Install AAEnabler and KingsInstaller** on your phone from their usual
+   community distribution channels (XDA, Telegram groups for your specific
+   AAEnabler build). Different AAEnabler forks patch slightly different
+   Android Auto versions, so match the build to your phone's Android Auto
+   version if the tool asks.
+2. **Run AAEnabler's unlock/patch step first.** This is what makes Velocity
+   eligible to appear at all - do this before anything else.
+3. **Install Velocity's APK through KingsInstaller** (not your phone's
+   regular package installer) - open the APK from KingsInstaller so it can
+   apply whatever signature/permission handling it does for sideloaded apps.
+4. **Open KingsInstaller's "customize launcher" screen** and enable Velocity.
+   This is the step that actually adds it to Android Auto's app grid; simply
+   having it installed is not enough.
+5. Plug into (or connect wirelessly to) your head unit and start Android
+   Auto. Velocity's icon should now be on the app grid.
 
-If a step above doesn't match your specific unit's version of AAEnabler or
-KingsInstaller, follow that tool's own instructions for "install a
-third-party APK" - the general shape (unlock with AAEnabler, install with
-KingsInstaller) holds across most units even when the exact menus don't.
+### If AAEnabler says Velocity has no Android Auto metadata
+
+Earlier builds of Velocity genuinely didn't declare itself as a car app at
+all - that's now fixed (see `car/VelocityCarAppService.kt` and
+`res/xml/automotive_app_desc.xml`, and the `com.google.android.gms.car.application`
+meta-data + `androidx.car.app.CarAppService` `<service>` in
+`AndroidManifest.xml`). If you still see this error on a current build:
+
+- Make sure you actually reinstalled the new APK - KingsInstaller sometimes
+  needs an explicit uninstall-then-reinstall to pick up manifest changes
+  rather than treating it as an update.
+- Double-check your AAEnabler build's own requirements - some forks look for
+  additional markers beyond the standard ones, or scan a specific manifest
+  attribute format. That's undocumented and varies by fork; if this build
+  still doesn't satisfy yours, please open an issue with the exact message.
+
+### If Velocity doesn't show up in "customize launcher"
+
+This is almost always the same root cause as above (no/incomplete car-app
+metadata) rather than a separate problem - fix that first. If Velocity has
+metadata and still doesn't list:
+
+- Restart KingsInstaller (and if that doesn't help, the phone's Android Auto
+  app / the phone itself) - these tools often cache the installed-app list.
+- Confirm AAEnabler's patch is actually active for this Android Auto session
+  - some patches don't survive an Android Auto app update and need
+  re-running.
+
+If a step above doesn't match your specific AAEnabler/KingsInstaller build,
+follow that tool's own instructions for "add a third-party app to the
+launcher" - the general shape (unlock with AAEnabler, install + enable with
+KingsInstaller) holds even when the exact menus don't. These are unofficial,
+undocumented, community-maintained tools with no public spec Velocity can
+build against with certainty - if your specific build still refuses it after
+the above, that's most likely a difference in what that fork checks for, and
+worth filing as an issue with the exact error text.
 
 ### Signing the APK
 
@@ -136,9 +197,22 @@ schemes than Android itself is:
 See `scripts/sign-release.sh` for details, including how to pass your own
 keystore instead of the throwaway one it generates by default.
 
+`.github/workflows/release-apk.yml` builds and signs the APK on every push to
+`main` and attaches it as a downloadable build artifact on that Actions run -
+it no longer publishes a GitHub release automatically; that's a manual step
+now.
+
 ## Status
 
-This is a young project - straightforward YouTube search/playback, a
-Netflix/Stremio WebView shell, and a custom-app picker all work end to end,
-but there's plenty of room for more (a proper settings screen, steering-wheel
-media key handling, a queue, offline caching). Contributions welcome.
+This is a young project. The phone-side app (YouTube search/playback, the
+Netflix/Stremio WebView shell, the custom-app picker) works end to end. The
+car-screen side (`car/`) is newer and rougher: YouTube-in-car uses a solid,
+well-supported mechanism (ExoPlayer rendering straight to the Surface the
+car-app framework hands it), but the Netflix/Stremio WebView mirroring is
+inherently more fragile - an unattached WebView's rendering isn't a fully
+supported Android configuration, so quality/reliability will vary by device.
+Whether *any* of the car-screen side actually appears on your head unit
+still ultimately depends on your specific AAEnabler/KingsInstaller build,
+which Velocity has no way to verify against ahead of time. There's plenty of
+room for more (a proper settings screen, steering-wheel media key handling, a
+queue, offline caching). Contributions welcome.

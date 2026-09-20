@@ -5,6 +5,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Required by the androidx.car.app framework to draw the NavigationTemplate's
+         raw Surface (what the in-car video/mirroring screens render into) and to
+         return NavigationTemplate at all. Normally signature/allowlist-gated by
+         Google; an AAEnabler-patched Android Auto host is what skips that gate. -->
+    <uses-permission android:name="androidx.car.app.ACCESS_SURFACE" />
+    <uses-permission android:name="androidx.car.app.NAVIGATION_TEMPLATES" />
+
     <!-- Velocity targets unofficial Android Automotive head units (installed via
          KingsInstaller/AAEnabler) but this flag also lets it list itself on real
          Android Automotive OS app drawers when it is present, and is a no-op
@@ -30,6 +37,13 @@
         android:usesCleartextTraffic="false"
         android:banner="@mipmap/ic_launcher"
         tools:targetApi="34">
+
+        <!-- The marker AAEnabler-style unlockers scan for to decide Velocity
+             is a car app at all - without this, they report "no Android
+             Auto metadata" and never offer it for the in-car launcher. -->
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
 
         <activity
             android:name=".home.HomeActivity"
@@ -63,6 +77,21 @@
             android:screenOrientation="landscape"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize"
             android:hardwareAccelerated="true" />
+
+        <!-- The actual in-car entry point: what the Android Auto host binds to
+             and renders on the car's screen once it's willing to show Velocity
+             at all. See car/VelocityCarAppService.kt. -->
+        <service
+            android:name=".car.VelocityCarAppService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.car.app.CarAppService" />
+                <category android:name="androidx.car.app.category.NAVIGATION" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.car.app.minCarApiLevel"
+                android:value="1" />
+        </service>
 
     </application>
 

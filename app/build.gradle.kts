@@ -62,6 +62,11 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:1.4.0")
     implementation("androidx.media3:media3-ui:1.4.0")
 
+    // The actual in-car surface (home grid, search, video) rendered on the
+    // Android Auto head unit screen once an unlocker like AAEnabler lets
+    // Velocity through.
+    implementation("androidx.car.app:app:1.4.0")
+
     // NewPipeExtractor powers YouTube search + stream resolution without the
     // heavy official YouTube app/website - this is what keeps Velocity fast.
     implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.24.4")

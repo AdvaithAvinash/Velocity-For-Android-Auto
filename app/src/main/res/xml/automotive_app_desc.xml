@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The classic "is this a car app" marker unlockers like AAEnabler scan
+     for. Modern car apps are really declared via the androidx.car.app
+     CarAppService in the manifest, but a lot of unlocker tooling still
+     keys off this file + the com.google.android.gms.car.application
+     meta-data existing at all, so both are provided. -->
+<automotiveApp>
+    <uses name="template" />
+</automotiveApp>

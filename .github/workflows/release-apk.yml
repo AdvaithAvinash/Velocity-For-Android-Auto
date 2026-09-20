@@ -1,12 +1,9 @@
-name: Build and release APK
+name: Build APK
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch: {}
-
-permissions:
-  contents: write
 
 jobs:
   build:
@@ -95,18 +92,9 @@ jobs:
           echo "version=$(grep versionName app/build.gradle.kts | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')" >> "$GITHUB_OUTPUT"
 
       - name: Upload build artifact
+        # Releases are published manually now - this step just makes the
+        # signed APK downloadable from the run's "Artifacts" section.
         uses: actions/upload-artifact@v4
         with:
           name: velocity-apk
           path: velocity.apk
-
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.apk.outputs.version }}-build${{ github.run_number }}
-          name: Velocity v${{ steps.apk.outputs.version }} (build ${{ github.run_number }})
-          body: |
-            Automated build of Velocity, signed with a throwaway uber-apk-signer keystore
-            (see `scripts/sign-release.sh`). Install via KingsInstaller as described in the README.
-          files: velocity.apk
-          generate_release_notes: false
