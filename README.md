@@ -218,3 +218,5 @@ room for more (a proper settings screen, steering-wheel media key handling, a
 queue, offline caching). Contributions welcome.
 
 [![Releases](https://img.shields.io/github/v/release/advaithavinash/Velocity-For-Android-Auto?label=Releases&style=for-the-badge)](https://github.com/advaithavinash/Velocity-For-Android-Auto/releases)
+
+[![Releases](https://img.shields.io/github/v/release/advaithavinash/Velocity-For-Android-Auto?label=Releases&style=for-the-badge)](https://github.com/advaithavinash/Velocity-For-Android-Auto/releases) [![Stars](https://img.shields.io/github/stars/advaithavinash/Velocity-For-Android-Auto?label=Stars&style=for-the-badge)](https://github.com/advaithavinash/Velocity-For-Android-Auto/stargazers) [![Issues](https://img.shields.io/github/issues/advaithavinash/Velocity-For-Android-Auto?label=Issues&style=for-the-badge)](https://github.com/advaithavinash/Velocity-For-Android-Auto/issues) [![License](https://img.shields.io/github/license/advaithavinash/Velocity-For-Android-Auto?label=License&style=for-the-badge)](https://github.com/advaithavinash/Velocity-For-Android-Auto/blob/main/LICENSE)
