@@ -10,6 +10,7 @@
     <string name="tile_disney_plus">Disney+</string>
     <string name="tile_prime_video">Prime Video</string>
     <string name="tile_max">Max</string>
+    <string name="tile_addons">Addons</string>
     <string name="tile_add_app">Add app</string>
 
     <string name="add_app_title">Add a web app</string>
@@ -36,6 +37,18 @@
     <string name="settings_data_saver">Data saver</string>
     <string name="settings_data_saver_description">Cap YouTube quality around 480p to start faster and buffer less - useful on cellular in the car.</string>
     <string name="settings_done">Done</string>
+
+    <string name="addon_manager_title">Addons</string>
+    <string name="addon_empty">No addons yet - add one by its manifest URL</string>
+    <string name="addon_add_title">Add an addon</string>
+    <string name="addon_url_hint">Manifest URL (https://…/manifest.json)</string>
+    <string name="addon_add_failed">Couldn\'t load that addon - check the URL and your connection</string>
+    <string name="addon_remove_title">Remove this addon?</string>
+    <string name="addon_catalog_empty">This addon has nothing to browse</string>
+    <string name="addon_no_streams">No streams found for this</string>
+    <string name="stream_unsupported">Needs a torrent client - not supported</string>
+    <string name="stream_direct">Direct stream</string>
+    <string name="cd_addon_icon">Addon icon</string>
 
     <string name="cd_back">Back</string>
     <string name="cd_search">Search</string>

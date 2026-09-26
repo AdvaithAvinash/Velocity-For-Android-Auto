@@ -68,6 +68,14 @@ class HomeCarScreen(carContext: CarContext) : Screen(carContext) {
                     screenManager.push(WebMirrorCarScreen(carContext, "https://www.max.com"))
                 }
             )
+            .addItem(
+                gridItem(
+                    title = carContext.getString(R.string.tile_addons),
+                    iconRes = R.drawable.ic_extension
+                ) {
+                    screenManager.push(AddonHomeCarScreen(carContext))
+                }
+            )
             .build()
 
         return GridTemplate.Builder()

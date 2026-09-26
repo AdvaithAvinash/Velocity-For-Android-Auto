@@ -78,6 +78,31 @@
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize"
             android:hardwareAccelerated="true" />
 
+        <activity
+            android:name=".addon.AddonManagerActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+
+        <activity
+            android:name=".addon.AddonCatalogActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+
+        <activity
+            android:name=".addon.AddonItemActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+
+        <activity
+            android:name=".addon.GenericPlayerActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize"
+            android:launchMode="singleTop" />
+
         <!-- The actual in-car entry point: what the Android Auto host binds to
              and renders on the car's screen once it's willing to show Velocity
              at all. See car/VelocityCarAppService.kt. -->

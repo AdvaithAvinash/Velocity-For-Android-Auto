@@ -71,6 +71,9 @@ dependencies {
     // paying a fresh TLS handshake/full re-download every time.
     implementation("androidx.media3:media3-datasource-okhttp:1.4.0")
 
+    // Direct-link streams from addons are often HLS (.m3u8), not plain mp4.
+    implementation("androidx.media3:media3-exoplayer-hls:1.4.0")
+
     // The actual in-car surface (home grid, search, video) rendered on the
     // Android Auto head unit screen once an unlocker like AAEnabler lets
     // Velocity through.

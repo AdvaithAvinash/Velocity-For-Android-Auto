@@ -9,5 +9,5 @@ data class AppTile(
     val url: String? = null,
     val removable: Boolean = false
 ) {
-    enum class Kind { YOUTUBE, WEB, ADD_APP }
+    enum class Kind { YOUTUBE, WEB, ADDONS, ADD_APP }
 }

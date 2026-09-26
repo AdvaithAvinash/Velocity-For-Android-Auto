@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.velocity.auto.R
+import com.velocity.auto.addon.AddonManagerActivity
 import com.velocity.auto.databinding.ActivityHomeBinding
 import com.velocity.auto.settings.SettingsDialog
 import com.velocity.auto.util.SystemUiHelper
@@ -54,6 +55,7 @@ class HomeActivity : AppCompatActivity() {
             AppTile.Kind.WEB -> startActivity(
                 WebAppActivity.intentFor(this, title = tile.label, url = tile.url.orEmpty())
             )
+            AppTile.Kind.ADDONS -> startActivity(AddonManagerActivity.intentFor(this))
             AppTile.Kind.ADD_APP -> AddAppDialog.show(this) { name, url ->
                 repository.addCustomApp(name, url)
                 refresh()

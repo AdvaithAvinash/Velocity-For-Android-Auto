@@ -101,6 +101,13 @@ class AppRepository(context: Context) {
             tintColor = color(R.color.max_tint),
             kind = AppTile.Kind.WEB,
             url = "https://www.max.com"
+        ),
+        AppTile(
+            id = "addons",
+            label = appContext.getString(R.string.tile_addons),
+            iconRes = R.drawable.ic_extension,
+            tintColor = color(R.color.addon_tint),
+            kind = AppTile.Kind.ADDONS
         )
     )
 

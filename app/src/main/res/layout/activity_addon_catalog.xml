@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/screen_margin"
+    android:paddingTop="20dp"
+    tools:context=".addon.AddonCatalogActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:background="@drawable/bg_circle_button"
+            android:contentDescription="@string/cd_back"
+            android:padding="14dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/on_background" />
+
+        <TextView
+            android:id="@+id/addonTitle"
+            style="@style/Velocity.Text.Title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            tools:text="Addon name" />
+
+    </LinearLayout>
+
+    <Spinner
+        android:id="@+id/catalogSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/touch_target_min"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_tile"
+        android:paddingHorizontal="12dp"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/itemsList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="24dp"
+            tools:listitem="@layout/item_catalog_item" />
+
+        <ProgressBar
+            android:id="@+id/loadingIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/accent" />
+
+        <TextView
+            android:id="@+id/emptyState"
+            style="@style/Velocity.Text.Subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/addon_catalog_empty"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+</LinearLayout>
