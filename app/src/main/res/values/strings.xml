@@ -7,6 +7,9 @@
     <string name="tile_youtube">YouTube</string>
     <string name="tile_netflix">Netflix</string>
     <string name="tile_stremio">Stremio</string>
+    <string name="tile_disney_plus">Disney+</string>
+    <string name="tile_prime_video">Prime Video</string>
+    <string name="tile_max">Max</string>
     <string name="tile_add_app">Add app</string>
 
     <string name="add_app_title">Add a web app</string>
@@ -26,6 +29,8 @@
     <string name="youtube_retry">Retry</string>
 
     <string name="player_error">Playback failed</string>
+    <string name="quality_auto">Auto</string>
+    <string name="quality_picker_title">Quality</string>
 
     <string name="settings_title">Settings</string>
     <string name="settings_data_saver">Data saver</string>

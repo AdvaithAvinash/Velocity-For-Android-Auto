@@ -14,6 +14,9 @@
     <color name="youtube_tint">#FF3B30</color>
     <color name="netflix_tint">#E5322D</color>
     <color name="stremio_tint">#7B5BF5</color>
+    <color name="disney_tint">#1E4FDE</color>
+    <color name="primevideo_tint">#00A8E1</color>
+    <color name="max_tint">#8A5CF6</color>
     <color name="web_tint">#2FA0FF</color>
 
     <color name="divider">#2A2E35</color>

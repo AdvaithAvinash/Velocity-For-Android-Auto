@@ -25,6 +25,7 @@ import androidx.media3.session.MediaSession
 import com.velocity.auto.settings.PlaybackPrefs
 import com.velocity.auto.youtube.HistoryStore
 import com.velocity.auto.youtube.extractor.PlayableStream
+import com.velocity.auto.youtube.extractor.QualityOption
 import com.velocity.auto.youtube.extractor.VelocityPlaybackCache
 import com.velocity.auto.youtube.extractor.YouTubeStreamResolver
 import com.velocity.auto.youtube.model.YtVideoItem
@@ -47,14 +48,18 @@ class YouTubePlayerCarScreen(
     private var mediaSession: MediaSession? = null
     private var loading = true
     private var errored = false
+    private var currentSurface: Surface? = null
+    private var qualities: List<QualityOption> = emptyList()
+    private var selectedHeight: Int? = null
 
     private val surfaceCallback = object : SurfaceCallback {
         override fun onSurfaceAvailable(surfaceContainer: SurfaceContainer) {
-            val surface = surfaceContainer.surface ?: return
-            startPlayback(surface)
+            currentSurface = surfaceContainer.surface ?: return
+            startPlayback(resumePositionMs = 0L)
         }
 
         override fun onSurfaceDestroyed(surfaceContainer: SurfaceContainer) {
+            currentSurface = null
             player?.clearVideoSurface()
         }
 
@@ -78,11 +83,18 @@ class YouTubePlayerCarScreen(
         )
     }
 
-    private fun startPlayback(surface: Surface) {
+    private fun startPlayback(resumePositionMs: Long) {
+        loading = true
+        invalidate()
         lifecycle.coroutineScope.launch {
             try {
-                val stream = YouTubeStreamResolver.resolve(video.url, PlaybackPrefs.isDataSaverEnabled(carContext))
-                attachAndPlay(stream, surface)
+                val resolved = YouTubeStreamResolver.resolve(
+                    video.url,
+                    targetHeight = selectedHeight,
+                    dataSaver = PlaybackPrefs.isDataSaverEnabled(carContext)
+                )
+                qualities = resolved.qualities
+                attachAndPlay(resolved.stream, resumePositionMs)
             } catch (e: Exception) {
                 errored = true
                 invalidate()
@@ -90,7 +102,11 @@ class YouTubePlayerCarScreen(
         }
     }
 
-    private fun attachAndPlay(stream: PlayableStream, surface: Surface) {
+    private fun attachAndPlay(stream: PlayableStream, resumePositionMs: Long) {
+        val surface = currentSurface ?: return
+        player?.release()
+        mediaSession?.release()
+
         val dataSourceFactory = VelocityPlaybackCache.dataSourceFactory(carContext)
 
         val exoPlayer = ExoPlayer.Builder(carContext).build()
@@ -129,8 +145,16 @@ class YouTubePlayerCarScreen(
             }
         )
 
+        if (resumePositionMs > 0L) exoPlayer.seekTo(resumePositionMs)
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
+        invalidate()
+    }
+
+    private fun switchQuality(height: Int?) {
+        selectedHeight = height
+        val resumeAt = player?.currentPosition ?: 0L
+        startPlayback(resumeAt)
     }
 
     private fun togglePlayback() {
@@ -144,17 +168,27 @@ class YouTubePlayerCarScreen(
             player?.isPlaying == true -> "Pause"
             else -> "Play"
         }
-        val actionStrip = ActionStrip.Builder()
+        val actionStripBuilder = ActionStrip.Builder()
             .addAction(
                 Action.Builder()
                     .setTitle(playPauseTitle)
                     .setOnClickListener { togglePlayback() }
                     .build()
             )
-            .build()
+
+        if (qualities.isNotEmpty()) {
+            actionStripBuilder.addAction(
+                Action.Builder()
+                    .setTitle(selectedHeight?.let { "${it}p" } ?: "Auto")
+                    .setOnClickListener {
+                        screenManager.push(QualityPickerCarScreen(carContext, qualities, ::switchQuality))
+                    }
+                    .build()
+            )
+        }
 
         return NavigationTemplate.Builder()
-            .setActionStrip(actionStrip)
+            .setActionStrip(actionStripBuilder.build())
             .setBackgroundColor(CarColor.createCustom(BACKGROUND_COLOR, BACKGROUND_COLOR))
             .build()
     }

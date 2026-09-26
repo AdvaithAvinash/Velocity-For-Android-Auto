@@ -14,10 +14,14 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.session.MediaSession
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.velocity.auto.R
 import com.velocity.auto.databinding.ActivityYoutubePlayerBinding
 import com.velocity.auto.settings.PlaybackPrefs
 import com.velocity.auto.util.SystemUiHelper
 import com.velocity.auto.youtube.extractor.PlayableStream
+import com.velocity.auto.youtube.extractor.QualityOption
+import com.velocity.auto.youtube.extractor.ResolvedVideo
 import com.velocity.auto.youtube.extractor.VelocityPlaybackCache
 import com.velocity.auto.youtube.extractor.YouTubeStreamResolver
 import com.velocity.auto.youtube.model.YtVideoItem
@@ -28,8 +32,11 @@ import kotlinx.coroutines.launch
 class YouTubePlayerActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityYoutubePlayerBinding
+    private lateinit var videoUrl: String
     private var player: ExoPlayer? = null
     private var mediaSession: MediaSession? = null
+    private var qualities: List<QualityOption> = emptyList()
+    private var selectedHeight: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,26 +46,37 @@ class YouTubePlayerActivity : AppCompatActivity() {
         SystemUiHelper.keepScreenOn(this, true)
 
         val video = videoFromIntent(intent)
+        videoUrl = video.url
         binding.playerTitle.text = video.title
         binding.backButton.setOnClickListener { finish() }
+        binding.qualityButton.setOnClickListener { showQualityPicker() }
 
         HistoryStore(this).record(video)
-        loadAndPlay(video.url)
+        loadAndPlay(resumePositionMs = 0L)
     }
 
-    private fun loadAndPlay(videoUrl: String) {
+    private fun loadAndPlay(resumePositionMs: Long) {
         binding.loadingIndicator.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
-                val stream = YouTubeStreamResolver.resolve(videoUrl, PlaybackPrefs.isDataSaverEnabled(this@YouTubePlayerActivity))
-                startPlayback(stream)
+                val resolved = YouTubeStreamResolver.resolve(
+                    videoUrl,
+                    targetHeight = selectedHeight,
+                    dataSaver = PlaybackPrefs.isDataSaverEnabled(this@YouTubePlayerActivity)
+                )
+                qualities = resolved.qualities
+                updateQualityButton()
+                startPlayback(resolved, resumePositionMs)
             } catch (e: Exception) {
                 showError()
             }
         }
     }
 
-    private fun startPlayback(stream: PlayableStream) {
+    private fun startPlayback(resolved: ResolvedVideo, resumePositionMs: Long) {
+        player?.release()
+        mediaSession?.release()
+
         val dataSourceFactory = VelocityPlaybackCache.dataSourceFactory(this)
 
         val exoPlayer = ExoPlayer.Builder(this).build()
@@ -66,7 +84,7 @@ class YouTubePlayerActivity : AppCompatActivity() {
         mediaSession = MediaSession.Builder(this, exoPlayer).build()
         binding.playerView.player = exoPlayer
 
-        when (stream) {
+        when (val stream = resolved.stream) {
             is PlayableStream.Progressive -> {
                 exoPlayer.setMediaItem(MediaItem.fromUri(stream.url))
             }
@@ -91,8 +109,31 @@ class YouTubePlayerActivity : AppCompatActivity() {
             }
         })
 
+        if (resumePositionMs > 0L) exoPlayer.seekTo(resumePositionMs)
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
+    }
+
+    private fun showQualityPicker() {
+        if (qualities.isEmpty()) return
+        val labels = listOf(getString(R.string.quality_auto)) + qualities.map { it.label }
+        val checkedIndex = qualities.indexOfFirst { it.heightPx == selectedHeight }.let { if (it < 0) 0 else it + 1 }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.quality_picker_title)
+            .setSingleChoiceItems(labels.toTypedArray(), checkedIndex) { dialog, which ->
+                selectedHeight = if (which == 0) null else qualities[which - 1].heightPx
+                dialog.dismiss()
+                val resumeAt = player?.currentPosition ?: 0L
+                loadAndPlay(resumePositionMs = resumeAt)
+            }
+            .show()
+    }
+
+    private fun updateQualityButton() {
+        binding.qualityButton.visibility = if (qualities.isEmpty()) View.GONE else View.VISIBLE
+        binding.qualityButton.text = selectedHeight?.let { "${it}p" }
+            ?: getString(R.string.quality_auto)
     }
 
     private fun showError() {

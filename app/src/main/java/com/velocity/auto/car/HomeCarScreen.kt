@@ -44,6 +44,30 @@ class HomeCarScreen(carContext: CarContext) : Screen(carContext) {
                     )
                 }
             )
+            .addItem(
+                gridItem(
+                    title = carContext.getString(R.string.tile_disney_plus),
+                    iconRes = R.drawable.ic_movie
+                ) {
+                    screenManager.push(WebMirrorCarScreen(carContext, "https://www.disneyplus.com"))
+                }
+            )
+            .addItem(
+                gridItem(
+                    title = carContext.getString(R.string.tile_prime_video),
+                    iconRes = R.drawable.ic_movie
+                ) {
+                    screenManager.push(WebMirrorCarScreen(carContext, "https://www.primevideo.com"))
+                }
+            )
+            .addItem(
+                gridItem(
+                    title = carContext.getString(R.string.tile_max),
+                    iconRes = R.drawable.ic_movie
+                ) {
+                    screenManager.push(WebMirrorCarScreen(carContext, "https://www.max.com"))
+                }
+            )
             .build()
 
         return GridTemplate.Builder()

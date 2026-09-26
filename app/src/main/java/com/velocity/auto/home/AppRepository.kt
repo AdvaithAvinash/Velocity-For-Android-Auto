@@ -77,6 +77,30 @@ class AppRepository(context: Context) {
             tintColor = color(R.color.stremio_tint),
             kind = AppTile.Kind.WEB,
             url = "https://web.stremio.com/"
+        ),
+        AppTile(
+            id = "disney_plus",
+            label = appContext.getString(R.string.tile_disney_plus),
+            iconRes = R.drawable.ic_movie,
+            tintColor = color(R.color.disney_tint),
+            kind = AppTile.Kind.WEB,
+            url = "https://www.disneyplus.com"
+        ),
+        AppTile(
+            id = "prime_video",
+            label = appContext.getString(R.string.tile_prime_video),
+            iconRes = R.drawable.ic_movie,
+            tintColor = color(R.color.primevideo_tint),
+            kind = AppTile.Kind.WEB,
+            url = "https://www.primevideo.com"
+        ),
+        AppTile(
+            id = "max",
+            label = appContext.getString(R.string.tile_max),
+            iconRes = R.drawable.ic_movie,
+            tintColor = color(R.color.max_tint),
+            kind = AppTile.Kind.WEB,
+            url = "https://www.max.com"
         )
     )
 

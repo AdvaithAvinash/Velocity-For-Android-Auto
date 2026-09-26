@@ -15,26 +15,72 @@ sealed class PlayableStream {
     data class Merged(val videoUrl: String, val audioUrl: String) : PlayableStream()
 }
 
+/** One entry in the quality picker, e.g. "1080p" backed by that resolution's pixel height. */
+data class QualityOption(val heightPx: Int, val label: String)
+
+data class ResolvedVideo(
+    val stream: PlayableStream,
+    /** Every distinct resolution this video actually has, highest first - what the quality picker lists. */
+    val qualities: List<QualityOption>,
+    /** Null means Auto/Data Saver picked it; non-null echoes back the height the caller asked for. */
+    val selectedHeight: Int?
+)
+
 object YouTubeStreamResolver {
 
     private const val DATA_SAVER_MAX_HEIGHT = 480
 
-    suspend fun resolve(videoUrl: String, dataSaver: Boolean = false): PlayableStream = withContext(Dispatchers.IO) {
+    /**
+     * @param targetHeight an exact quality the user picked (e.g. from [QualityOption]); when null,
+     *   falls back to Auto (best available) or, with [dataSaver], the best quality at or under 480p.
+     */
+    suspend fun resolve(
+        videoUrl: String,
+        targetHeight: Int? = null,
+        dataSaver: Boolean = false
+    ): ResolvedVideo = withContext(Dispatchers.IO) {
         val info = StreamInfo.getInfo(ServiceList.YouTube, videoUrl)
+        val progressiveCandidates = info.videoStreams.filter { !it.isVideoOnly }
+        val videoOnlyCandidates = info.videoOnlyStreams
 
-        val bestProgressive = pick(info.videoStreams.filter { !it.isVideoOnly }, dataSaver)
+        val qualities = (progressiveCandidates + videoOnlyCandidates)
+            .map { heightOf(it) }
+            .filter { it > 0 }
+            .distinct()
+            .sortedDescending()
+            .map { QualityOption(it, "${it}p") }
+
+        val bestProgressive = if (targetHeight != null) {
+            pickExact(progressiveCandidates, targetHeight)
+        } else {
+            pick(progressiveCandidates, dataSaver)
+        }
         if (bestProgressive != null) {
-            return@withContext PlayableStream.Progressive(bestProgressive.content)
+            return@withContext ResolvedVideo(
+                PlayableStream.Progressive(bestProgressive.content),
+                qualities,
+                targetHeight
+            )
         }
 
-        val bestVideoOnly = pick(info.videoOnlyStreams, dataSaver)
+        val bestVideoOnly = if (targetHeight != null) {
+            pickExact(videoOnlyCandidates, targetHeight)
+        } else {
+            pick(videoOnlyCandidates, dataSaver)
+        }
         val bestAudio = info.audioStreams.maxByOrNull { bitrateOf(it) }
 
         if (bestVideoOnly != null && bestAudio != null) {
-            return@withContext PlayableStream.Merged(bestVideoOnly.content, bestAudio.content)
+            return@withContext ResolvedVideo(
+                PlayableStream.Merged(bestVideoOnly.content, bestAudio.content),
+                qualities,
+                targetHeight
+            )
         }
 
-        bestVideoOnly?.let { return@withContext PlayableStream.Progressive(it.content) }
+        bestVideoOnly?.let {
+            return@withContext ResolvedVideo(PlayableStream.Progressive(it.content), qualities, targetHeight)
+        }
 
         error("No playable stream found for $videoUrl")
     }
@@ -46,6 +92,10 @@ object YouTubeStreamResolver {
         val capped = candidates.filter { heightOf(it) in 1..DATA_SAVER_MAX_HEIGHT }
         return capped.maxByOrNull { heightOf(it) } ?: candidates.minByOrNull { heightOf(it) }
     }
+
+    /** The stream whose height is closest to what the user asked for - exact match when available. */
+    private fun pickExact(candidates: List<VideoStream>, targetHeight: Int): VideoStream? =
+        candidates.minByOrNull { kotlin.math.abs(heightOf(it) - targetHeight) }
 
     private fun heightOf(stream: VideoStream): Int =
         Regex("\\d+").find(stream.resolution.orEmpty())?.value?.toIntOrNull() ?: 0
